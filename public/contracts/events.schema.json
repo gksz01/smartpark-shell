@@ -1,0 +1,47 @@
+{
+  "title": "SmartPark IntegrationEvent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "version",
+    "type",
+    "userId",
+    "reservationId",
+    "occurredAt",
+    "correlationId"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "version": {
+      "const": 1
+    },
+    "type": {
+      "enum": [
+        "ReservaCriada",
+        "ReservaCancelada",
+        "PagamentoConfirmado"
+      ]
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reservationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    }
+  }
+}

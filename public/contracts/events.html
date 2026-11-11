@@ -1,0 +1,47 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>SmartPark — Contratos de eventos</title><style>body{font:17px/1.6 system-ui;max-width:900px;margin:40px auto;padding:20px;color:#183a35}pre{background:#eef6f3;padding:20px;overflow:auto}table{border-collapse:collapse}td,th{padding:12px;border:1px solid #ddd;text-align:left}a{color:#00685b}</style><h1>Contratos de eventos SmartPark</h1><p>Versão 1. Produtor: serviço Reservas. Transporte: Azure Storage Queue <code>smartpark-events</code>, JSON codificado em Base64. Consumidor: Azure Function <code>onParkingEvent</code>.</p><table><tr><th>Evento</th><th>Quando ocorre</th></tr><tr><td>ReservaCriada</td><td>Na criação transacional da reserva.</td></tr><tr><td>PagamentoConfirmado</td><td>Na primeira aprovação do pagamento simulado.</td></tr><tr><td>ReservaCancelada</td><td>Na primeira transição para cancelada.</td></tr></table><h2>Garantias e falhas</h2><p>Reserva e Outbox são persistidas na mesma transação SQL. O Timer solicita despacho a cada dois minutos. A publicação é pelo menos uma vez; o consumidor deduplica por eventId no Table Storage (PartitionKey=userId e RowKey=eventId). Não há garantia de ordenação global. Após cinco falhas, a mensagem vai para smartpark-events-poison. Eventos inválidos são rejeitados; não são descartados silenciosamente.</p><p>Os eventos não são endpoints HTTP de comando. A consulta HTTP de notificações é protegida por credencial interna e acessada pelo BFF em nome do usuário autenticado.</p><h2>Schema JSON</h2><a href="events.schema.json">Baixar schema</a><pre>{
+  "title": "SmartPark IntegrationEvent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "version",
+    "type",
+    "userId",
+    "reservationId",
+    "occurredAt",
+    "correlationId"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "version": {
+      "const": 1
+    },
+    "type": {
+      "enum": [
+        "ReservaCriada",
+        "ReservaCancelada",
+        "PagamentoConfirmado"
+      ]
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reservationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    }
+  }
+}</pre><p><a href="https://github.com/gksz01/smartpark-functions">Código do consumidor</a> · <a href="https://github.com/gksz01/smartpark-reservation-service">Código do produtor</a></p></html>
